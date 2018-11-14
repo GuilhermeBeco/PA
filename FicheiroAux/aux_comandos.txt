@@ -1,10 +1,10 @@
 ﻿/**
  * @brief Comandos auxiliares
  * @author Rui Ferreira
- * @version 1.0 
+ * @version 1.1 
  */
- 
- 
+
+
 *** PARA TESTES A PROGRAMAS: executar um programa N vezes ***
 for i in $(seq 1 20); do   ./race-condition;   done
 
@@ -24,7 +24,7 @@ copiardiretoria "tags" (com contém outras diretorias) para:
 ~/.config/geany/tags
 
 
-**** instalar gonme-terminal (para poder personalizar diferentes janelas) *** 
+**** instalar gonme-terminal (para poder personalizar diferentes janelas) ***
 sudo apt-get install gnome-terminal
 
 --- colocar este terminal como o "default" ----
