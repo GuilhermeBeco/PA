@@ -10,16 +10,17 @@
 #include <string.h>
 #include <time.h>
 #include <stdlib.h>
-
+#include <errno.h>
 #include "debug.h"
 #include "common.h"
 #include "server_opt.h"
+#include <math.h>
 
 #define C_ERR_CANT_CREATE_SOCKET (2)
 #define MAX_PORT  ((1<<16)-1)
 #define C_ERR_INVALID_PORT (1)
 #define C_ERR_CANT_CLOSE_SOCKET (3)
-    #define C_EER_CANT_BIND (4)
+#define C_ERR_CANT_BIND (4)
 
 
 int main(int argc, char *argv[]){
@@ -49,8 +50,8 @@ int main(int argc, char *argv[]){
    memset(&udp_server_endpoint, 0, sizeof(struct sockaddr_in));
    udp_server_endpoint.sin_family = AF_INET;
    udp_server_endpoint.sin_addr.s_addr = htonl(INADDR_ANY);  	// Todas as interfaces de rede
-   udp_server_endpoint.sin_port = htons(args.port_arg);	// Server port
-   int ret_bind=bind(udp_server_socket,(struct *sockaddr)&udp_server_endpoint,sizeof(udp_server_endpoint));
+   udp_server_endpoint.sin_port = htons(args_info.port_arg);	// Server port
+   int ret_bind=bind(udp_server_socket,(struct sockaddr *)&udp_server_endpoint,sizeof(udp_server_endpoint));
    if(ret_bind==-1){
      fprintf(stderr, "ERROR: cannot bind at port %d:%s\n",my_port,strerror(errno));
      exit(C_ERR_CANT_BIND);
@@ -73,7 +74,20 @@ int main(int argc, char *argv[]){
 int handle_client(int serv_sock){
   uint16_t clnt_value;
   struct sockaddr_in clnt_addr;
-  sockelen_t clnt_addr_len=sizeof(clnt_addr);
+  socklen_t clnt_addr_len=sizeof(clnt_addr);
+  char *res [];
 
-  recvfrom(serv_sock,&clnt_value,sizeof(clnt_value),0,(struct sockaddr*)&clnt_addr,&clnt_addr_len);
+  ssize_t ret_recvfrom=recvfrom(serv_sock,&clnt_value,sizeof(clnt_value),0,(struct sockaddr*)&clnt_addr,&clnt_addr_len);
+  if(ret_recvfrom==-1){
+    fprintf(stderr, "Cannot recive from server (buff=%zu):%s\n",sizeof(clnt_addr),strerror(errno));
+    return -1;
+  }
+  uint16_t host_clnt_value=ntohs(clnt_value);
+  double sqrt_clnt=sqrt(host_clnt_value);
+  snprintf(res,sizeof(sqrt_clnt),"%.5lf",sqrt_clnt);
+  ssize_t ret_sendto=sendto(serv_sock,&res,strlen(res)+1,0,(struct sockaddr*)&clnt_addr,clnt_addr_len);
+  if(ret_sendto==-1){
+    fprintf(stderr, "Cannot send to buff(=%zu)%s\n",strlen(res),strerror(errno));
+    return -1;
+  }
 }
