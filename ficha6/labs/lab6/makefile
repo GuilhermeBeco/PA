@@ -18,7 +18,7 @@ LDFLAGS=#-pg
 IFLAGS=-linux -brs -brf -br
 
 # name of the server executable
-SERVER=recebe_pacote_UDP
+SERVER=server
 
 # Prefix for the server's gengetopt file
 SERVER_OPT=server_opt
@@ -27,7 +27,7 @@ SERVER_OPT=server_opt
 SERVER_OBJS=server.o debug.o memory.o $(SERVER_OPT).o
 
 # name of the client executable
-CLIENT=envia_pacote_UDP
+CLIENT=client
 
 # Prefix for the client's gengetopt file
 CLIENT_OPT=client_opt
