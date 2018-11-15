@@ -9,6 +9,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <stdin.h>
+#include <errno.h>
 
 #include "debug.h"
 #include "memory.h"
@@ -19,6 +20,7 @@
 #define MAX_PORT  ((1<<16)-1)
 #define C_ERR_INVALID_PORT (1)
 #define C_ERR_CANT_CLOSE_SOCKET (3)
+    #define C_EER_CANT_BIND (4)
 
 int main(int argc,char* argv[]){
   struct gengetopt_agrs_info args_info;
@@ -45,9 +47,15 @@ int main(int argc,char* argv[]){
  	memset(&udp_server_endpoint, 0, sizeof(struct sockaddr_in));
  	udp_server_endpoint.sin_family = AF_INET;
  	udp_server_endpoint.sin_addr.s_addr = htonl(INADDR_ANY);  	// Todas as interfaces de rede
- 	udp_server_endpoint.sin_port = htons(args.port_arg/???);	// Server port
+ 	udp_server_endpoint.sin_port = htons(args.port_arg);	// Server port
+  int ret_bind=bind(udp_server_socket,(struct *sockaddr)&udp_server_endpoint,sizeof(udp_server_endpoint));
+  if(ret_bind==-1){
+    fprintf(stderr, "ERROR: cannot bind at port %d:%s\n",my_port,strerror(errno));
+    exit(C_ERR_CANT_BIND);
+  }
  	if (bind(udp_server_socket, (struct sockaddr *) &udp_server_endpoint, sizeof(struct sockaddr_in)) == -1)
- 		ERROR(32, "Can't bind @udp_server_endpoint info: %s\n", strerror(errno));
+ 		ERROR(32, "Can't bind @udp_server_endpoint info");
+
    //3:loop:recvfrom/sendto
    //4:close socket
 
