@@ -5,7 +5,7 @@
 # date 2010-09-26 / updated: 2016-03-15 (Patricio)
 
 # Libraries to include (if any)
-LIBS=-lm -pthread
+LIBS=-lm #-pthread
 
 # Compiler flags
 CFLAGS=-Wall -Wextra -ggdb -std=c11 -pedantic -D_POSIX_C_SOURCE=200809L #-pg
@@ -18,7 +18,7 @@ LDFLAGS=#-pg
 IFLAGS=-linux -brs -brf -br
 
 # name of the server executable
-SERVER=server
+SERVER=recebe_pacote_UDP
 
 # Prefix for the server's gengetopt file
 SERVER_OPT=server_opt
@@ -27,7 +27,7 @@ SERVER_OPT=server_opt
 SERVER_OBJS=server.o debug.o memory.o $(SERVER_OPT).o
 
 # name of the client executable
-CLIENT=client
+CLIENT=envia_pacote_UDP
 
 # Prefix for the client's gengetopt file
 CLIENT_OPT=client_opt
