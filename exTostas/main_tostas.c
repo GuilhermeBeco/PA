@@ -16,10 +16,12 @@
 
 #define C_NUM_TIMES	(3)
 
-void *fatias(void *arg); 
-void *queijo(void *arg); 
-void *fiambre(void *arg); 
+void *fatias(void *arg);
+void *queijo(void *arg);
+void *fiambre(void *arg);
 void *done(void *arg) ;
+
+
 
 typedef struct thread_parameters{
 	int status;
@@ -58,9 +60,9 @@ int main(void){
 		ERROR(10, "Erro no pthread_create()!");
 	if ((errno=pthread_create(&tid_done,NULL,done,&thread_params) != 0))
 		ERROR(10, "Erro no pthread_create()!");
-	
-	
-	// espera que a thread termine	
+
+
+	// espera que a thread termine
 	if ((errno = pthread_join(tid_fatias, NULL)) != 0)
 		ERROR(11, "Erro no pthread_join()!\n");
 	if ((errno = pthread_join(tid_queijo, NULL)) != 0)
@@ -74,7 +76,7 @@ int main(void){
 	if ((errno = pthread_mutex_destroy(&mutex)) != 0)
 		ERROR(13, "pthread_mutex_destroy() failed");
 
-	// Var.Condição: destroi a variável de condição 
+	// Var.Condição: destroi a variável de condição
 	if ((errno = pthread_cond_destroy(&cond)) != 0)
 		ERROR(15,"pthread_cond_destroy failed!");
 
@@ -93,14 +95,14 @@ void *fatias(void *arg) {
 
 		while( params->status != C_CORTA ){
 			if ((errno = pthread_cond_wait(params->ptr_cond,
-						params->ptr_mutex)!=0)){   
+						params->ptr_mutex)!=0)){
 				WARNING("pthread_cond_wait() failed");
 				return NULL;
 			}
 		}
 		printf("[%d] Fatias cortadas\n", C_CORTA);
 		params->status=C_QUEIJO_1;
-		
+
 		if ((errno = pthread_cond_broadcast(params->ptr_cond)) != 0){
 			WARNING("pthread_cond_signal() failed");
 			return NULL;
@@ -128,14 +130,14 @@ void *queijo(void *arg) {
 
 		while( params->status != C_QUEIJO_1 ){
 			if ((errno = pthread_cond_wait(params->ptr_cond,
-						params->ptr_mutex)!=0)){   
+						params->ptr_mutex)!=0)){
 				WARNING("pthread_cond_wait() failed");
 				return NULL;
 			}
 		}
-		
+
 		printf("[%d] Fatia de queijo no 1\n", C_QUEIJO_1);
-		
+
 		params->status=C_FIAMBRE;
 //		printf("status=C_FIAMBRE (%d)\n",params->status);
 		if ((errno = pthread_cond_broadcast(params->ptr_cond)) != 0){
@@ -144,7 +146,7 @@ void *queijo(void *arg) {
 		}
 		while( params->status != C_QUEIJO_2 ){
 			if ((errno = pthread_cond_wait(params->ptr_cond,
-						params->ptr_mutex)!=0)){   
+						params->ptr_mutex)!=0)){
 				WARNING("pthread_cond_wait() failed");
 				return NULL;
 			}
@@ -169,7 +171,7 @@ void *queijo(void *arg) {
 void *fiambre(void *arg) {
 	// cast para o tipo de dados enviado pela 'main thread'
 	thread_params_t *params = (thread_params_t *) arg;
-	
+
 	for(int i=0;i<C_NUM_TIMES;i++){
 		if ((errno = pthread_mutex_lock(params->ptr_mutex)) != 0){
 			WARNING("pthread_mutex_lock() failed");
@@ -178,16 +180,16 @@ void *fiambre(void *arg) {
 
 		while( params->status != C_FIAMBRE ){
 			if ((errno = pthread_cond_wait(params->ptr_cond,
-						params->ptr_mutex)!=0)){   
+						params->ptr_mutex)!=0)){
 				WARNING("pthread_cond_wait() failed");
 				return NULL;
 			}
 		}
-		
+
 		printf("[%d] Fatia de fiambre \n", C_FIAMBRE);
 		params->status=C_QUEIJO_2;
-		
-		
+
+
 		if ((errno = pthread_cond_broadcast(params->ptr_cond)) != 0){
 			WARNING("pthread_cond_signal() failed");
 			return NULL;
@@ -216,17 +218,17 @@ void *done(void *arg) {
 
 		while( params->status!=C_DONE ){
 			if ((errno = pthread_cond_wait(params->ptr_cond,
-						params->ptr_mutex)!=0)){   
+						params->ptr_mutex)!=0)){
 				WARNING("pthread_cond_wait() failed");
 				return NULL;
 			}
 		}
-	
+
 		printf("[%d] Toasting \n", C_DONE);
 		printf("**Entregue**\n");
 		params->status=C_CORTA;
-	
-		
+
+
 		if ((errno = pthread_cond_broadcast(params->ptr_cond)) != 0){
 			WARNING("pthread_cond_signal() failed");
 			return NULL;
@@ -241,5 +243,3 @@ void *done(void *arg) {
 
 	return NULL;
 }
-
-
