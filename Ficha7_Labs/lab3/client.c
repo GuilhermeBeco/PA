@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 	if(port<=0 || port>MAX_PORT)
 	fprintf(stderr, "post %d out of range [1-%d]\n",port,MAX_PORT );
 	char * ip_ptr=args.ip_arg;
-	
+
 
 	// TCP IPv4: connect ao IP/porto do servidor
 	struct sockaddr_in tcp_server_endpoint;
