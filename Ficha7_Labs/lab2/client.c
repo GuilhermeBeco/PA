@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 	if(port<=0 || port>MAX_PORT)
 	fprintf(stderr, "post %d out of range [1-%d]\n",port,MAX_PORT );
 	char * ip_ptr=args.ip_arg;
-	
+
 
 	// TCP IPv4: connect ao IP/porto do servidor
 	struct sockaddr_in tcp_server_endpoint;
@@ -48,21 +48,26 @@ int main(int argc, char *argv[])
 	if(ret_connect==-1){
 		ERROR(54,"Cannot connect to server");
 	}
+srandom(getpid()*time(NULL));
+int number = (random()% 9999)+1;
+char s[32];
+snprintf(s,	sizeof(s), "%d", number)
+int ret_send=send(clnt_sock,s, strlen(s),0);
+if (ret_send==-1) {
+	fprintf(stderr, "Cannot send to server:%s\n",stderror(errno));
+	exit(3);
+}
+uint16_t clnt_num;
+int ret_recv=recv(clnt_sock, &clnt_num, sizeof(clnt_num), 0);
+if (ret_recv==-1) {
+	fprintf(stderr, "Cannot recv%s\n",strerror(errno) );
+	close(clnt_sock)
+	exit(4);
+}
 
+clnt_num=ntohs(clnt_num);
+printf("clnt_num=%u\n",clnt_num);
 
-
-
-
-
-
-	// Server port
-	/*
-	printf("a ligar ao servidor... "); fflush(stdout);
-	if (connect(tcp_client_socket, (struct sockaddr *) &tcp_server_endpoint, sizeof(struct sockaddr_in)) == -1)
-	ERROR(43, "Can't connect @tcp_server_endpoint: %s\n", strerror(errno));
-	printf("ok. \n");
-
-	*/
 
 	// libertar recurso (cmdline_parser)
 	cmdline_parser_free(&args);
