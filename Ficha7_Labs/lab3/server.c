@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 
 char S[128];
 ssize_t ret_recv;
-ret_recv=recv(clnt_sock,S,sizeof(S),0);
+ret_recv=recv(clnt_sock,S,sizeof(S)-1,0);
 if(ret_recv==-1){
 	fprintf(stderr, "Cannot receive %s\n", strerror(errno));
 	continue;
@@ -75,6 +75,7 @@ if(ret_recv==0){
 	close(clnt_sock);
 	continue;
 }
+S[ret_recv]='\0';
 printf("Num to process: %s\n",S);
 uint16_t number =atoi(S);
 number=htons(number);
