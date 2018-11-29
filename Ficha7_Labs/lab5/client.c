@@ -68,6 +68,19 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "Cannot send to server: %s\n", strerror(errno));
 		exit(4);
 	}
+//////////////////////////////////////////
+
+	int ret_recv = recv(clnt_sock, S, sizeof(S)-1, 0);
+	if (ret_recv == -1) {
+		fprintf(stderr, "Cannot recv: %s\n", strerror(errno));
+		exit(5);
+	}else if(ret_recv == 0){
+		fprintf(stderr, "Server has closed connection :\n");
+		close(clnt_sock);
+		exit(6);
+	}
+	S[ret_recv]='\0';
+	printf("%s",S);
 	//----------------------------
 	snprintf(	S,sizeof(S),"%d",number+1);
 	printf("client send[2] %s\n",S );
@@ -79,7 +92,7 @@ int main(int argc, char *argv[])
 
 
 	uint16_t clnt_number;
-	int ret_recv = recv(clnt_sock, &clnt_number, sizeof(clnt_number), 0);
+ ret_recv = recv(clnt_sock, &clnt_number, sizeof(clnt_number), 0);
 	if (ret_recv == -1) {
 		fprintf(stderr, "Cannot recv: %s\n", strerror(errno));
 		exit(5);
@@ -91,6 +104,21 @@ int main(int argc, char *argv[])
 	clnt_number = ntohs(clnt_number);
 	printf("clnt_number=%u\n", clnt_number);
 
+	///-------------------------------------------------
+
+	/*char S [128];
+	ret_recv = recv(clnt_sock, S, strlen(S), 0);
+	if (ret_recv == -1) {
+		fprintf(stderr, "Cannot recv: %s\n", strerror(errno));
+		exit(5);
+	}else if(ret_recv == 0){
+		fprintf(stderr, "Server has closed connection :O\n");
+		close(clnt_sock);
+		exit(6);
+	}
+
+	printf("%s\n",S);
+*/
 	// libertar recurso (cmdline_parser)
 	cmdline_parser_free(&args);
 
