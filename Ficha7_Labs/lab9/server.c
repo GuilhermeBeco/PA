@@ -84,32 +84,32 @@ int main(int argc, char *argv[])
 			continue;
 		}
 		if(my_pid==0){
-		//Deal with clients
-		sleep(2);
-		char S[128];
-		uint8_t clnt_op;
-		ssize_t ret_recv = recv(clnt_sock, &clnt_op, sizeof(clnt_op), 0);
-		if (ret_recv == -1) {
-			fprintf(stderr, "Cannot recv: %s\n", strerror(errno));
-			continue;
-		}
-		if (ret_recv == 0) {
-			fprintf(stderr, "Remote peer has closed\n");
-			close(clnt_sock);
-			continue;
-		}
-		fill_date_time(clnt_op,S,sizeof(S));
-		printf("S=%s\n",S);
-		ssize_t ret_send = send(clnt_sock,S,strlen(S),0);
-		if (ret_send == -1) {
-			fprintf(stderr, "Cannot send: %s\n", strerror(errno));
-			close(clnt_sock);
-			continue;
-		}
+			//Deal with clients
+			sleep(2);
+			char S[128];
+			uint8_t clnt_op;
+			ssize_t ret_recv = recv(clnt_sock, &clnt_op, sizeof(clnt_op), 0);
+			if (ret_recv == -1) {
+				fprintf(stderr, "Cannot recv: %s\n", strerror(errno));
+				continue;
+			}
+			if (ret_recv == 0) {
+				fprintf(stderr, "Remote peer has closed\n");
+				close(clnt_sock);
+				continue;
+			}
+			fill_date_time(clnt_op,S,sizeof(S));
+			printf("S=%s\n",S);
+			ssize_t ret_send = send(clnt_sock,S,strlen(S),0);
+			if (ret_send == -1) {
+				fprintf(stderr, "Cannot send: %s\n", strerror(errno));
+				close(clnt_sock);
+				continue;
+			}
 
-		close(clnt_sock);
+			close(clnt_sock);
+		}
 	}
-}
 
 	close(tcp_server_socket);
 
@@ -126,17 +126,18 @@ int fill_date_time(uint8_t clnt_op,char *S,size_t s_len){
 	if(tmp==NULL){
 		ERROR(EXIT_FAILURE,"Cannot localtime");
 	}
-
+	char str[128];
 	if(clnt_op==0){
-		strftime(S, s_len, "%Y%m%d_%Hh%M.%S", tmp);
+		strftime(str, sizeof(str), "%Y%m%d_%Hh%M.%S", tmp);
 
 	}else if(clnt_op==1){
-		strftime(S, s_len, "%Y%m%d", tmp);
+		strftime(str, sizeof(str), "%Y%m%d", tmp);
 	}
 	else if(clnt_op==2){
-		strftime(S, s_len, "%Hh%M.%S", tmp);
+		strftime(str, sizeof(str), "%Hh%M.%S", tmp);
 	}
 	else{
 		snprintf(S, s_len, "Invalid code %u\n", clnt_op);
 	}
+	snprintf(S, s_len, "[%d] %s\n",getpid(),str);
 }
