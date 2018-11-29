@@ -88,6 +88,7 @@ int main(int argc, char *argv[])
 			}
 			S[ret_recv]='\0';
 			printf("client %s\n",S);
+			exit(0);
 		}//if
 	}//for
 
