@@ -74,7 +74,16 @@ int main(int argc, char *argv[])
 		}
 		num_clnt++;
 		printf("Client %zu: IP=%s, port=%u\n",num_clnt, clnt_IP_S, ntohs(clnt_addr.sin_port));
-
+		pid_t my_pid = fork();
+		if(my_pid==-1){
+			fprintf(stderr, "Cannot fork\n");
+			exit(EXIT_FAILURE);
+		}
+		if(my_pid>0){
+			close(clnt_sock);
+			continue;
+		}
+		if(my_pid==0){
 		//Deal with clients
 		sleep(2);
 		char S[128];
@@ -100,6 +109,7 @@ int main(int argc, char *argv[])
 
 		close(clnt_sock);
 	}
+}
 
 	close(tcp_server_socket);
 
