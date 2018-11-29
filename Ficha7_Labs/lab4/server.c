@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
 			close(clnt_sock);
 			continue;
 		}
-		S[ret_recv]=''\0';
+		S[ret_recv]='\0';
 		printf("[rcv2] %s\n",S);
 
 
