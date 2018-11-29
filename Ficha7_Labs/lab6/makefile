@@ -17,8 +17,6 @@ ${PROG_SERVER}: ${OBJS_SERVER}
 
 .c.o:
 	${CC} ${CFLAGS} -c $< -o $@
-	
+
 clean:
 	rm -f *.o ${PROG_SERVER} ${CMDLINE_DIR}/${PROG_SERVER}_cmdline.o ${DEBUG_DIR}/debug.o
-	
-

@@ -57,6 +57,7 @@ int main(int argc, char *argv[])
 	struct sockaddr_in clnt_addr;
 	socklen_t clnt_addr_len;
 	char clnt_IP_S[128];
+	size_t num_clnt=0;
 	while (1) {
 		clnt_addr_len = sizeof(clnt_addr);
 		int clnt_sock = accept(tcp_server_socket, (struct sockaddr *)&clnt_addr, &clnt_addr_len);
@@ -71,10 +72,13 @@ int main(int argc, char *argv[])
 			close(clnt_sock);
 			continue;
 		}
-		printf("Client: IP=%s, port=%u\n", clnt_IP_S, ntohs(clnt_addr.sin_port));
+		num_clnt++;
+		printf("Client %zu: IP=%s, port=%u\n",num_clnt, clnt_IP_S, ntohs(clnt_addr.sin_port));
 
 		//Deal with clients
+		sleep(2);
 		char S[128];
+		uint8_t clnt_op;
 		ssize_t ret_recv = recv(clnt_sock, &clnt_op, sizeof(clnt_op), 0);
 		if (ret_recv == -1) {
 			fprintf(stderr, "Cannot recv: %s\n", strerror(errno));
@@ -120,7 +124,7 @@ int fill_date_time(uint8_t clnt_op,char *S,size_t s_len){
 		strftime(S, s_len, "%Y%m%d", tmp);
 	}
 	else if(clnt_op==2){
-			strftime(S, s_len, "%Hh%M.%S", tmp);
+		strftime(S, s_len, "%Hh%M.%S", tmp);
 	}
 	else{
 		snprintf(S, s_len, "Invalid code %u\n", clnt_op);
