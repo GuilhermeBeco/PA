@@ -10,7 +10,7 @@
 #define C_ERRO_CONNECT  	7
 #define C_ERRO_CMDLINE  	8
 #define C_ERRO_INET_PTON  	9
-
+#define C_MAX_PORT (1<<16)
 
 #define MAIOR 				2
 #define IGUAL 				1

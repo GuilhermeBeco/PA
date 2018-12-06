@@ -7,130 +7,101 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <strings.h>
+
 
 #include "debug.h"
 #include "comum.h"
 #include "servidor_opt.h"
 
+#define C_FIM "fim"
 void processaCliente(int fd);
-
+int check_port(int port){
+  if (port<=0||port>C_MAX_PORT) {
+    fprintf(stderr, "ERROR: invalid port\n");
+    exit(EXIT_FAILURE);
+  }
+  return port;
+}
 int main(int argc, char *argv[])
 {
-  int ser_fd, cli_fd;
-  socklen_t cli_len;
-  struct sockaddr_in ser_addr, cli_addr;
-
   /* Processa os parâmetros da linha de comando */
   struct gengetopt_args_info args_info;
   if (cmdline_parser(argc, argv, &args_info) != 0)
-  ERROR(C_ERRO_CMDLINE, "cmdline_parser");
+    ERROR(C_ERRO_CMDLINE, "cmdline_parser");
 
-  /* cria um socket */
-  if ((ser_fd = socket(AF_INET, SOCK_STREAM, 0)) == 1)
-  ERROR(C_ERRO_SOCKET, "socket");
+  int my_port=check_port(args_info.porto_arg);
 
-  /* preenche estrutura: ip/porto do servidor */
-  memset(&ser_addr, 0, sizeof(ser_addr));
-  ser_addr.sin_family = AF_INET;
-  ser_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-  ser_addr.sin_port = htons(args_info.porto_arg);
+  int tcp_server_socket;
+  if ((tcp_server_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+    ERROR(51, "Can't create tcp_server_socket (IPv4): %s\n", strerror(errno));
 
-  /* disponibiliza o porto para escuta */
-  if (bind(ser_fd, (struct sockaddr *) &ser_addr, sizeof(ser_addr)) == -1){
-    ERROR(C_ERRO_BIND, "bind");
-  }
-  if (listen(ser_fd, 5) == 1){
-    ERROR(C_ERRO_LISTEN, "Listen");
-  }
-  printf("Servidor %s no porto %d\n", argv[0], args_info.porto_arg);
+  struct sockaddr_in tcp_server_endpoint;
+  memset(&tcp_server_endpoint, 0, sizeof(struct sockaddr_in));
+  tcp_server_endpoint.sin_family = AF_INET;
+  tcp_server_endpoint.sin_addr.s_addr = htonl(INADDR_ANY); 		// Todas as interfaces de rede
+  tcp_server_endpoint.sin_port = htons(my_port);		// Server port
+  if (bind(tcp_server_socket, (struct sockaddr *) &tcp_server_endpoint, sizeof(struct sockaddr_in)) == -1)
+    ERROR(52, "Can't bind @tcp_server_endpoint: %s\n", strerror(errno));
 
-  /* ciclo infinito para atender todos os clientes */
+  int tcp_max_simultaneous_clients = 1;
+  if (listen(tcp_server_socket, tcp_max_simultaneous_clients)  == -1)
+    ERROR(53, "Can't listen for %d clients: %s\n", tcp_max_simultaneous_clients, strerror(errno));
+
+  char tcp_client_string_ip[20];
+  struct sockaddr_in tcp_client_endpoint;
   while (1) {
-    cli_len = sizeof(struct sockaddr);
-    /* accept - bloqueante */
-    cli_fd = accept(ser_fd, (struct sockaddr *) &cli_addr, &cli_len);
-    if (cli_fd < 0){
-      if (errno == EINTR ){
-        printf("accept got EINTR:continuing\n");
-        continue;
-      }else{
-        ERROR(C_ERRO_ACCEPT, "Accept");
+  socklen_t tcp_client_endpoint_length = sizeof(struct sockaddr_in);
+  int tcp_client_socket;
+  printf("à espera da ligação do cliente... ");
+  fflush(stdout);
+  if ((tcp_client_socket = accept(tcp_server_socket, (struct sockaddr *) &tcp_client_endpoint, &tcp_client_endpoint_length)) == -1){
+    if(errno == EINTR){
+      fprintf(stderr, "[Server] EINTR detected. continuing ..\n");
+      }
+     else {
+        ERROR(EXIT_FAILURE,"Server cannot accept");
       }
     }
-
-    /* mostra informação sobre o cliente e processa pedido */
-    char ip[20];
-    size_t num_clients=0;
-    DEBUG("cliente [%s@%d]",
-    inet_ntop(AF_INET, &cli_addr.sin_addr, ip, sizeof(ip)),
-    ntohs(cli_addr.sin_port));
-    pid_t my_pid=fork();
-    if(my_pid==-1){
-      ERROR(EXIT_FAILURE,"Cannot fork");
-    }
-    if(my_pid==0){
-      close(ser_fd);
-      processaCliente(cli_fd);
-      close(cli_fd);
-      exit(0);
-      
-    }
-    else{
-      num_clients++;
-      printf("[SERVER-MAIN] client #%zu\n",num_clients );
-      close(cli_fd);
-    }
-
-
-
-    /* liberta recursos utilizados com este cliente*/
-    close(cli_fd);
+  printf("ok. \n");
+  inet_ntop(AF_INET, &tcp_client_endpoint.sin_addr,
+  tcp_client_string_ip, sizeof(tcp_client_string_ip)), htons(tcp_client_endpoint.sin_port);
+  printf("cliente: %s@%d\n",tcp_client_string_ip);
+  processaCliente(tcp_client_socket);
+  close(tcp_client_socket);
   }
-
-  return (0);
+  close(tcp_server_socket);
+  cmdline_parser_free(&args_info);
+  return 0;
 }
 
 
 
-void processaCliente(int fd)
-{
-  uint16_t  n_cli, n_serv, res;
-
-  srand(time(NULL));
-  n_serv = 1 + (uint16_t) (100.0 * rand() / (RAND_MAX + 1.0));
-  DEBUG("número escolhido: %d\n", n_serv);
-
+void processaCliente(int fd){
+  ssize_t tcp_read_bytes,tcp_sent_bytes;
+  char echo_buff[1024];
   do {
     /* recebe dados do cliente - chamada bloqueante */
-    int ret_recv = recv(fd, &n_cli, sizeof(uint16_t), 0);
-    if( ret_recv == -1 ){
+    tcp_read_bytes = recv(fd, echo_buff, sizeof(echo_buff)-1, 0);
+    if( tcp_read_bytes== -1 ){
       if( errno == EINTR ){
         printf("recv: got EINTR - continuing\n");
         continue;
       }else{
         ERROR(C_ERRO_RECV, "recv");
+        return ;
       }
     }
-    if( ret_recv == 0 ){
+    echo_buff[tcp_read_bytes-1]='\0';
+    if( tcp_read_bytes == 0 ){
       fprintf(stderr,"Got 0 bytes - connection close by peer\n");
-      return;
+      return ;
     }
-    printf("ret_recv=%d octets from client\n", ret_recv);
-
-    n_cli = ntohs(n_cli);
-
-    if (n_cli == n_serv)
-    res = IGUAL;
-    else if (n_cli < n_serv)
-    res = MENOR;
-    else
-    res = MAIOR;
-
-    res = htons(res);
+    printf("echo_buff = %s,C_FIM=%s\n",echo_buff,C_FIM);
 
     /* envia resposta ao cliente */
-    if (send(fd, &res, sizeof(uint16_t), 0) == -1)
+    if (send(fd, echo_buff, strlen(echo_buff)+1, 0) == -1)
     ERROR(C_ERRO_SEND, "send");
 
-  } while (n_cli != n_serv);
+  } while (strcasecmp(echo_buff, C_FIM)!=0);
 }
