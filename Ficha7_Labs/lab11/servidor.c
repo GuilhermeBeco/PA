@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
     /* Processa os parâmetros da linha de comando */
     struct gengetopt_args_info args_info;
     if (cmdline_parser(argc, argv, &args_info) != 0)
-        ERROR(C_ERRO_CMDLINE, "cmdline_parser");      
+        ERROR(C_ERRO_CMDLINE, "cmdline_parser");
 
     /* cria um socket */
     if ((ser_fd = socket(AF_INET, SOCK_STREAM, 0)) == 1)
@@ -45,6 +45,7 @@ int main(int argc, char *argv[])
     while (1) {
 	cli_len = sizeof(struct sockaddr);
         /* accept - bloqueante */
+        printf("[SERVER]Waiting for accept\n");
         cli_fd = accept(ser_fd, (struct sockaddr *) &cli_addr, &cli_len);
         if (cli_fd < 0){
             ERROR(C_ERRO_ACCEPT, "Accept");
@@ -56,7 +57,7 @@ int main(int argc, char *argv[])
 	  inet_ntop(AF_INET, &cli_addr.sin_addr, ip, sizeof(ip)),
 	                                   ntohs(cli_addr.sin_port));
         processaCliente(cli_fd);
-        
+
         /* liberta recursos utilizados com este cliente*/
         close(cli_fd);
     }
@@ -66,7 +67,7 @@ int main(int argc, char *argv[])
 
 
 
-void processaCliente(int fd) 
+void processaCliente(int fd)
 {
     uint16_t  n_cli, n_serv, res;
 
@@ -75,6 +76,7 @@ void processaCliente(int fd)
     DEBUG("número escolhido: %d\n", n_serv);
 
     do {
+      printf("Waiting from recv\n");
         /* recebe dados do cliente - chamada bloqueante */
         if (recv(fd, &n_cli, sizeof(uint16_t), 0) == -1)
             ERROR(C_ERRO_RECV, "recv");
@@ -93,6 +95,6 @@ void processaCliente(int fd)
         /* envia resposta ao cliente */
         if (send(fd, &res, sizeof(uint16_t), 0) == -1)
             ERROR(C_ERRO_SEND, "send");
-            
+
     } while (n_cli != n_serv);
 }
