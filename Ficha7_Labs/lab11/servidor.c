@@ -6,6 +6,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include "debug.h"
 #include "comum.h"
@@ -78,9 +79,16 @@ void processaCliente(int fd)
     do {
       printf("Waiting from recv\n");
         /* recebe dados do cliente - chamada bloqueante */
-        if (recv(fd, &n_cli, sizeof(uint16_t), 0) == -1)
-            ERROR(C_ERRO_RECV, "recv");
-
+        ssize_t ret_recv=recv(fd, &n_cli, sizeof(uint16_t), 0);
+        if (ret_recv== -1){
+            fprintf(stderr, "[SERVER]ERROR: can't recv %s\n",strerror(errno));
+            return;
+        }
+        if(ret_recv==0){
+            fprintf(stderr, "[SERVER]ERROR: client desligado (recv)\n");
+            return;
+        }
+        printf("[SERVER] %zd bytes recv\n",ret_recv);
         n_cli = ntohs(n_cli);
 
         if (n_cli == n_serv)
