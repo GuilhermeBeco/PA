@@ -15,6 +15,15 @@
 #include "common.h"
 #include "server_opt.h"
 
+#define C_MAX_PORT (1<<16)
+
+int check_port(int port){
+  if (port<=0||port>C_MAX_PORT) {
+    fprintf(stderr, "ERROR: invalid port\n");
+    exit(EXIT_FAILURE);
+  }
+  return port;
+}
 
 int main(int argc, char *argv[]){
     /* Estrutura gerada pelo utilitario gengetopt */
@@ -24,6 +33,9 @@ int main(int argc, char *argv[]){
     if (cmdline_parser (argc, argv, &args_info) != 0){
         exit(ERR_ARGS);
     }
+    int remote_port=check_port(args_info.port_arg);
+
+
 
     /*
      * Inserir codigo do servidor
