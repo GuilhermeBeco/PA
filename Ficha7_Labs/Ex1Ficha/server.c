@@ -66,6 +66,25 @@ int main(int argc, char *argv[]){
     ERROR(EXIT_FAILURE, "Can't bind @udp_server_endpoint info: %s\n", strerror(errno));
   }
 
+  socklen_t udp_client_endpoint_length = sizeof(struct sockaddr_in);
+	struct sockaddr_in udp_client_endpoint;
+	ssize_t udp_read_bytes, udp_sent_bytes;
+	//char buffer[];
+	//...
+  int16_t rcv;
+
+	// UDP IPv4: "recvfrom" do cliente (bloqueante)
+	printf("à espera de dados do cliente... "); fflush(stdout);
+	if ((udp_read_bytes = recvfrom(udp_server_socket, rcv, sizeof(rcv), 0, (struct sockaddr *) &udp_client_endpoint, &udp_client_endpoint_length)) == -1)
+		ERROR(34, "Can't recvfrom client: %s\n", strerror(errno));
+	printf("ok.  (%d bytes recebidos)\n", (int)udp_read_bytes);
+   int16_t send = trata_rcv() ##########################################
+	// UDP IPv4: "sendto" para o cliente
+	printf("a enviar dados para o cliente... "); fflush(stdout);
+	if ((udp_sent_bytes = sendto(udp_server_socket, send, sizeof(send), 0, (struct sockaddr *) &udp_client_endpoint, udp_client_endpoint_length)) == -1)
+		ERROR(35, "Can't sendto client: %s\n", strerror(errno));
+	printf("ok.  (%d bytes enviados)\n", (int)udp_sent_bytes);z
+
   if (close(udp_server_socket) == -1){
     ERROR(EXIT_FAILURE, "Can't close udp_server_socket (IPv4): %s\n", strerror(errno));
   }
