@@ -14,23 +14,25 @@
 #include "memory.h"
 #include "debug.h"
 #include "common.h"
+#include <string.h>
 #include "client_opt.h"
+#define C_MAX_STATUS ((1<<16)-1)
 
 int check_port(int port){
-  if (port<=0||port>C_MAX_STATUS) {
+  if (port<=0||port>C_MAX_STATUS ) {
     fprintf(stderr, "ERROR: invalid port\n");
     exit(EXIT_FAILURE);
   }
   return port;
 }
-int check_request(char [7] request){
+int check_request(char request [7]){
   if(strcmp(request,"on")==0){
     return 1;
   }
   else if(strcmp(request, "off")==0){
     return 2;
   }
-  else if (strcmp(request, "status")=0){
+  else if (strcmp(request, "status")==0){
     return 0;
   }else{
     fprintf(stderr, "ERROR: invalid request %s\n");
@@ -38,8 +40,8 @@ int check_request(char [7] request){
   }
 
 }
-int check_device(int device,char [7] request){
-  if(device!=0&& strcmp(request, status)!=0){
+int check_device(int device,char request [7]){
+  if(device!=0&& strcmp(request, "status")!=0){
     fprintf(stderr,"ERROR: request or device wrong %s\n");
     exit(EXIT_FAILURE);
   }
@@ -58,7 +60,7 @@ void showLegenda(){
 }
 int16_t build_responde(int device,int req){
   int16_t ret;
-  if(res==0){
+  if(req==0){
     ret=0;
   }else if(req==1){
     ret=(1>>9)|1;
@@ -66,7 +68,7 @@ int16_t build_responde(int device,int req){
   }
   else{
     ret=(1>>9)&0;
-    ret(1>>device)|1;
+    ret=(1>>device)|1;
   }
   return ret;
 }
@@ -74,7 +76,6 @@ void build_rcv(int16_t response,int req,int device){
 int c=1;
 showLegenda();
   if(req==0){
-
     for(int i =0;i<8;i++){
       if(response[i]==1){
         printf("%d está ligado\n",c);
@@ -95,7 +96,7 @@ showLegenda();
   }
 }
 
-}
+
 int main(int argc, char *argv[]){
   /* Estrutura gerada pelo utilitario gengetopt */
   struct gengetopt_args_info args_info;
@@ -106,8 +107,11 @@ int main(int argc, char *argv[]){
   }
 
   int port=check_port(args_info.port_arg);
-  char [7] request = args_info.request_arg;
-  int req=check_request(char request);
+  char *s = args_info.request_arg;
+  int n = strlen(s);
+  char request[n+1] ;
+  strcpy(request, s) ;
+  int req=check_request(request);
   int device=0;
   if(args_info.device_given){
     device=args_info.device_arg;
@@ -160,7 +164,7 @@ printf("ok.  (%d bytes enviados)\n", (int)udp_sent_bytes);
 
 printf("à espera de dados do servidor... ");
 fflush(stdout);
-int16_t response;
+response=0;
 udp_read_bytes = recvfrom(udp_client_socket, &response, sizeof(response), 0, (struct sockaddr *) &udp_server_endpoint, &udp_server_endpoint_length);
 if (udp_read_bytes == -1){
   ERROR(EXIT_FAILURE, "Can't recvfrom server: %s\n", strerror(errno));
