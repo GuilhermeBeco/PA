@@ -3,6 +3,8 @@
  * @date: 2016-11-17
  * @author: autor
  */
+
+ //falta o trata send e o trata recv
 #include <stdio.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
@@ -27,7 +29,7 @@ int main(int argc, char *argv[]){
 
 	//int remote_port = check_port(args_info.port_arg);
 
-	int udp_client_socket;	
+	int udp_client_socket;
 	udp_client_socket = socket(AF_INET, SOCK_DGRAM, 0);
 	if( udp_client_socket == -1 ){
 		ERROR(EXIT_FAILURE, "Can't create udp_client_socket (IPv4)");
@@ -44,11 +46,11 @@ int main(int argc, char *argv[]){
 	}
 
 	// UDP IPv4: informação do servidor UDP
-	socklen_t udp_server_endpoint_length = sizeof(struct sockaddr_in);	
+	socklen_t udp_server_endpoint_length = sizeof(struct sockaddr_in);
 	struct sockaddr_in udp_server_endpoint;
 	memset(&udp_server_endpoint, 0, sizeof(struct sockaddr_in));
 	udp_server_endpoint.sin_family = AF_INET;
-	int ret_inet_pton = inet_pton(AF_INET, args_info.ip_arg, 
+	int ret_inet_pton = inet_pton(AF_INET, args_info.ip_arg,
 			&udp_server_endpoint.sin_addr.s_addr);
 	if(ret_inet_pton == -1 ){
 		ERROR(EXIT_FAILURE,"Invalid family");
@@ -72,7 +74,7 @@ int main(int argc, char *argv[]){
 	}
 	printf("ok.  (%d bytes enviados)\n", (int)udp_sent_bytes);
 
-	printf("à espera de dados do servidor... "); 
+	printf("à espera de dados do servidor... ");
 	uint16_t response;
 
 	int flags = 0
@@ -94,7 +96,7 @@ int main(int argc, char *argv[]){
 	if( udp_read_bytes == -1 ){
 		ERROR(EXIT_FAILURE, "Can't recvfrom server");
 	}
-	printf("ok.  (%d bytes recebidos)\n", (int)udp_read_bytes);	
+	printf("ok.  (%d bytes recebidos)\n", (int)udp_read_bytes);
 
 	// UDP IPv4: fecha socket (client)
 	if (close(udp_client_socket) == -1){
