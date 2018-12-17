@@ -88,7 +88,7 @@ int main(int argc, char *argv[]){
 		ERROR(34, "Can't recvfrom client: %s\n", strerror(errno));
 	printf("ok.  (%d bytes recebidos)\n", (int)udp_read_bytes);
 
-	trata_send(recv,&domus_status);
+	trata_send(recv,domus_status);
 
 	// UDP IPv4: "sendto" para o cliente
 	if(send_status_all==domus_status){
@@ -116,7 +116,7 @@ int main(int argc, char *argv[]){
 	cmdline_parser_free(&args_info);
 	return 0;
 }
-void trata_desliga(int16_t recv,int16_t * domus){
+void trata_desliga(int16_t recv,int16_t  domus){
 	int device=recv-20;
 /*	int bitStatus = (domus >> device) & 1;
 	int16_t mask=(1<<device);*/
@@ -129,12 +129,12 @@ void trata_desliga(int16_t recv,int16_t * domus){
 		send_status_desligado=0;
 	}
 	else{
-		(domus<<device)&0;
+		domus = domus & (~(1<<device));
 		send_status_desligado=1;
 	}
 
 }
-void trata_liga(int16_t recv,int16_t * domus){
+void trata_liga(int16_t recv,int16_t  domus){
 	int device=recv-20;
 	int mask=(1<<device);
 	if(device>8&&device<1){
@@ -144,22 +144,22 @@ void trata_liga(int16_t recv,int16_t * domus){
 		send_status_ligado=0;
 	}
 	else{
-		domus<<device|1;
+		domus = domus & (~(0<<device));
 		send_status_ligado=1;
 	}
 
 }
 
 
-void trata_send(int16_t recv,int16_t * domus){
+void trata_send(int16_t recv,int16_t  domus){
 	if(recv==0){
 		send_status_all=domus;
 	}
 	else if(recv >=20){
-		trata_desliga(recv,&domus);
+		trata_desliga(recv,domus);
 	}
 	else{
-		trata_liga(recv,&domus);
+		trata_liga(recv,domus);
 	}
 
 }
