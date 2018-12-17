@@ -11,16 +11,21 @@
 #include <time.h>
 #include <stdlib.h>
 #include <unistd.h>
-
+#include <errno.h>
 #include "debug.h"
 #include "common.h"
 #include "server_opt.h"
+
+int show_status(uint16_t status);
+void trata_send(int16_t recv,int16_t * domus);
+void trata_liga(int16_t recv,int16_t * domus);
 int show_status(uint16_t status);
 
 #define C_MAX_PORT	(1<<16) // ==> common.h
 int send_status_desligado=10;
 int send_status_ligado=10;
 int16_t send_status_all;
+void trata_desliga(int16_t recv,int16_t * domus);
 int check_port(int port){
 	if( port <= 0 || port >= C_MAX_PORT ){
 		fprintf(stderr,"ERROR: invalid port '%d'. Must be within"
@@ -47,7 +52,7 @@ int main(int argc, char *argv[]){
 				status);
 		exit(EXIT_FAILURE);
 	}
-	uint16_t domus_status = (uint16_t) status;
+	int16_t domus_status = (int16_t) status;
 	 //DEBUG
 	show_status(domus_status);
 
@@ -83,7 +88,7 @@ int main(int argc, char *argv[]){
 		ERROR(34, "Can't recvfrom client: %s\n", strerror(errno));
 	printf("ok.  (%d bytes recebidos)\n", (int)udp_read_bytes);
 
-	trata_send(recv);
+	trata_send(recv,&domus_status);
 
 	// UDP IPv4: "sendto" para o cliente
 	if(send_status_all==domus_status){
@@ -113,15 +118,18 @@ int main(int argc, char *argv[]){
 }
 void trata_desliga(int16_t recv,int16_t * domus){
 	int device=recv-20;
-	int mask=(1<<device);
+/*	int bitStatus = (domus >> device) & 1;
+	int16_t mask=(1<<device);*/
+	int mask = 1 << device;
+	int bit = domus & mask;
 	if(device>8&&device<1){
 		send_status_desligado=2;
 	}
-	if((domus&mask)==0){
+	if(bit==0){
 		send_status_desligado=0;
 	}
 	else{
-		domus<<device&0;
+		(domus<<device)&0;
 		send_status_desligado=1;
 	}
 
