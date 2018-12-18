@@ -28,35 +28,47 @@ int check_port(int port){
 	}
 	return port;
 }
-void trata_send(char *domain[]){
+void trata_send(char domain[]){
   printf("funcao\n");
   int len=strlen(domain);
   int change=0;
   int toChange=0;
   int shift=0;
   srand(time(NULL));   // Initialization, should only be called once.
-  int r = (rand()%(len));
-  while(change!=0){
+    int r = (rand() % (len - 4 )) + 4;
+//int r = 5;
+
+  do{
+  printf("rand %d\n",r);
+  printf("domain[r] = %c\n",domain[r]);
     if(domain[r]!=46){// 46 = ao ponto em ascii
+      printf("Dentro do if do ponto\n");
       toChange=domain[r];
       shift=(rand()%(8));
-      if(((toChange<<shift)&1)==1){
-        (toChange<<shift)&0;
-        printf("%d\n",toChange);
+      if(1 == ( (toChange >> shift) & 1)){
+      //  1 == ( (toChange >> shift) & 1)
+        printf("Dentro do if do shift\n");
+      //  (toChange<<shift)&0;
+        toChange = toChange & (~(1<<shift));
+      //  printf("%d\n",toChange);
         domain[r]=toChange; //ascii to char
         change=1;
-      }
-      else{
-        (toChange<<shift)|1;
-        printf("%d\n",toChange);
+      } else{
+        printf("Desntro do else do shift\n");
+        //(toChange<<shift)|1;
+        toChange = (1 << shift) | toChange;
+        //printf("%d\n",toChange);
         domain[r]=toChange;
         change=1;
       }
+    }else{
+      printf("Dentro do else do ponto\n");
+    //  r++;
+    r = (rand() % (len - 4 )) + 4;
+      if(r>len)
+        change=1;
     }
-    else{
-      r = (rand()%(len));
-    }
-  }
+  }while(change!=1);
 }
 int main(int argc, char *argv[]){
     /* Estrutura gerada pelo utilitario gengetopt */
@@ -113,7 +125,7 @@ int main(int argc, char *argv[]){
   		ERROR(57, "Can't recv from client: %s\n", strerror(errno));
     printf("%s\n",domain);
     printf("ok.  (%d bytes recebidos)\n", (int)tcp_read_bytes);
-    trata_send(&domain);
+    trata_send(domain);
       printf("%s\n",domain);
 
   	// TCP IPv4: "send" para o cliente

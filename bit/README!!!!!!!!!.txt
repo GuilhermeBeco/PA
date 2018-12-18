@@ -1,0 +1,1 @@
+O que está feito é o core basicamente. Não pus o server iterativo, não fiz todas as verificações de parametros em ambos e mandei um domain predefinido (www.google.pt) e funcionou.. Basicamente não tratei daquelas paneleirices habituiais e foquei-me mais na função.

@@ -9,12 +9,15 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <string.h>
-
+#include <errno.h>
 #include "memory.h"
 #include "debug.h"
 #include "common.h"
 #include "client_opt.h"
-int16_t send=0;
+#define C_MAX_PORT (1<<16)
+
+
+
 int check_port(int port){
 	if( port <= 0 || port >= C_MAX_PORT ){
 		fprintf(stderr,"ERROR: invalid port '%d'. Must be within"
@@ -23,6 +26,7 @@ int check_port(int port){
 	}
 	return port;
 }
+
 void show_legenda(){
   printf("1- Portão da garagem\n");
   printf("2- Iluminacao hall\n");
@@ -33,7 +37,8 @@ void show_legenda(){
   printf("7- Persiana 3\n");
   printf("8- Piso\n");
 }
-void trata_send(char request[], int device){
+
+void trata_send(char request[], int device,int16_t * send){
     if(strcmp(request,"status")==0){
       send=0;
     }
@@ -46,6 +51,7 @@ void trata_send(char request[], int device){
       send+=device;
     }
 }
+
 void trata_recv(int recv_spec,int16_t recv_all,int flag,int device){
 int c=1;
 show_legenda();
@@ -71,8 +77,10 @@ show_legenda();
       }
   }
 }
+
 int main(int argc, char *argv[]){
     /* Estrutura gerada pelo utilitario gengetopt */
+    int16_t *m_send=0;
     struct gengetopt_args_info args_info;
 
     /* Processa os parametros da linha de comando */
@@ -81,7 +89,7 @@ int main(int argc, char *argv[]){
     }
     int remote_port = check_port(args_info.port_arg);
     int device=args_info.device_arg;
-    char request [] = args_info.request_arg;
+    char *request = args_info.request_arg;
     int flag=0;
     int udp_client_socket;
     if ((udp_client_socket = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
@@ -99,7 +107,7 @@ int main(int argc, char *argv[]){
     ssize_t udp_read_bytes, udp_sent_bytes;
     //char buffer[];
     //...
-    trata_send(request, device);
+    trata_send(request, device,&m_send);
     // UDP IPv4: "sendto" para o servidor
     printf("a enviar dados para o servidor... "); fflush(stdout);
     if ((udp_sent_bytes = sendto(udp_client_socket, send, sizeof(send), 0, (struct sockaddr *) &udp_server_endpoint, udp_server_endpoint_length)) == -1)
@@ -120,7 +128,7 @@ int main(int argc, char *argv[]){
     printf("ok.  (%d bytes recebidos)\n", (int)udp_read_bytes);
     flag=0;
   }
-  trata_recv(recv_spec,recv_all,flag);
+  trata_recv(recv_spec,recv_all,flag,device);
 
 
     if (close(udp_client_socket) == -1)

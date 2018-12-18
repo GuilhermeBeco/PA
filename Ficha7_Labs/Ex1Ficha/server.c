@@ -17,15 +17,16 @@
 #include "server_opt.h"
 
 int show_status(uint16_t status);
-void trata_send(int16_t recv,int16_t * domus);
-void trata_liga(int16_t recv,int16_t * domus);
+void trata_send(int16_t recv,int16_t  domus);
+void trata_liga(int16_t recv,int16_t  domus);
+void trata_desliga(int16_t recv,int16_t  domus);
 int show_status(uint16_t status);
 
 #define C_MAX_PORT	(1<<16) // ==> common.h
 int send_status_desligado=10;
 int send_status_ligado=10;
 int16_t send_status_all;
-void trata_desliga(int16_t recv,int16_t * domus);
+
 int check_port(int port){
 	if( port <= 0 || port >= C_MAX_PORT ){
 		fprintf(stderr,"ERROR: invalid port '%d'. Must be within"
@@ -64,15 +65,18 @@ int main(int argc, char *argv[]){
 		ERROR(EXIT_FAILURE, "Can't create udp_server_socket (IPv4)");
 	}
 
-	struct sockaddr_in udp_server_endpoint;
-	memset(&udp_server_endpoint, 0, sizeof(struct sockaddr_in));
-	udp_server_endpoint.sin_family = AF_INET;
-	udp_server_endpoint.sin_addr.s_addr = htonl(INADDR_ANY);
-	udp_server_endpoint.sin_port = htons(remote_port);
-	int ret_bind = bind(udp_server_socket,
-	  (struct sockaddr *) &udp_server_endpoint, sizeof(struct sockaddr_in));
+	struct sockaddr_in serv_addr;
+	memset(&serv_addr, 0, sizeof(struct sockaddr_in));
+	serv_addr.sin_family = AF_INET; //same as PF_INET
+	serv_addr.sin_addr.s_addr = htonl(INADDR_ANY); // network byte address
+	serv_addr.sin_port = htons(remote_port);
+	printf("UDP server / port: %d\n", remote_port);
+	int ret_bind = bind( udp_server_socket,
+								(struct sockaddr*)&serv_addr, sizeof(serv_addr));
 	if( ret_bind == -1 ){
-		ERROR(EXIT_FAILURE,"Can't bind @udp_server_endpoint info");
+		fprintf(stderr,"ERROR: cannot bind at port %d: %s\n",
+							remote_port, strerror(errno));
+		exit(EXIT_FAILURE);
 	}
 
 
@@ -116,7 +120,7 @@ int main(int argc, char *argv[]){
 	cmdline_parser_free(&args_info);
 	return 0;
 }
-void trata_desliga(int16_t recv,int16_t  domus){
+void trata_desliga(int16_t recv,int16_t domus){
 	int device=recv-20;
 /*	int bitStatus = (domus >> device) & 1;
 	int16_t mask=(1<<device);*/
@@ -134,7 +138,7 @@ void trata_desliga(int16_t recv,int16_t  domus){
 	}
 
 }
-void trata_liga(int16_t recv,int16_t  domus){
+void trata_liga(int16_t recv,int16_t domus){
 	int device=recv-20;
 	int mask=(1<<device);
 	if(device>8&&device<1){
@@ -151,7 +155,7 @@ void trata_liga(int16_t recv,int16_t  domus){
 }
 
 
-void trata_send(int16_t recv,int16_t  domus){
+void trata_send(int16_t recv,int16_t domus){
 	if(recv==0){
 		send_status_all=domus;
 	}
