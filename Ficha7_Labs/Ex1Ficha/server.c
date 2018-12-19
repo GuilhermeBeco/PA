@@ -85,10 +85,12 @@ int main(int argc, char *argv[]){
 	ssize_t udp_read_bytes, udp_sent_bytes;
 	//char buffer[];
 	//...
-	int16_t recv;
+	int16_t my_recv;
 	// UDP IPv4: "recvfrom" do cliente (bloqueante)
 	printf("à espera de dados do cliente... "); fflush(stdout);
-	if ((udp_read_bytes = recvfrom(udp_server_socket, recv, sizeof(recv), 0, (struct sockaddr *) &udp_client_endpoint, &udp_client_endpoint_length)) == -1)
+	printf("%d\n",udp_server_socket);
+	if ((udp_read_bytes = recvfrom(udp_server_socket, my_recv,
+		 sizeof(my_recv), 0, (struct sockaddr *) &udp_client_endpoint, &udp_client_endpoint_length)) == -1)
 		ERROR(34, "Can't recvfrom client: %s\n", strerror(errno));
 	printf("ok.  (%d bytes recebidos)\n", (int)udp_read_bytes);
 

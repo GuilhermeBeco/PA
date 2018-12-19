@@ -67,29 +67,32 @@ int main(int argc, char *argv[]){
   	// UDP IPv4: "recvfrom" do cliente (bloqueante)
    int16_t recv=0;
   	printf("à espera de dados do cliente... "); fflush(stdout);
-  	if ((udp_read_bytes = recvfrom(udp_server_socket, recv, sizeof(recv), 0, (struct sockaddr *) &udp_client_endpoint, &udp_client_endpoint_length)) == -1)
+  	if ((udp_read_bytes = recvfrom(udp_server_socket, &recv, sizeof(recv), 0, (struct sockaddr *) &udp_client_endpoint, &udp_client_endpoint_length)) == -1)
   		ERROR(34, "Can't recvfrom client: %s\n", strerror(errno));
   	printf("ok.  (%d bytes recebidos)\n", (int)udp_read_bytes);
    int16_t send_tratado = trata_send(domus_status,recv);
    int16_t send=0;
+   printf("send tratado = %d\n",send_tratado);
    if(send_tratado==0){
       send=2;//codigo de resposta
+   }else if(send_tratado==99){
+      printf("99\n");
+      send=domus_status;
    }
    else if(send_tratado!=domus_status){
       send=1;
       domus_status=send_tratado;
-   }else if(send_tratado==99){
-      send=domus_status;
    }
    else{
       send=0;
    }
+   printf("send %d\n",send);
     // UDP IPv4: "sendto" para o cliente
     printf("a enviar dados para o cliente... "); fflush(stdout);
-    if ((udp_sent_bytes = sendto(udp_server_socket, send, sizeof(send), 0, (struct sockaddr *) &udp_client_endpoint, udp_client_endpoint_length)) == -1)
+    if ((udp_sent_bytes = sendto(udp_server_socket, &send, sizeof(send), 0, (struct sockaddr *) &udp_client_endpoint, udp_client_endpoint_length)) == -1)
     	ERROR(35, "Can't sendto client: %s\n", strerror(errno));
     printf("ok.  (%d bytes enviados)\n", (int)udp_sent_bytes);
-
+    show_status(domus_status);
 
     if (close(udp_server_socket) == -1)
   		ERROR(33, "Can't close udp_server_socket (IPv4): %s\n", strerror(errno));
@@ -102,8 +105,8 @@ int16_t trata_send(int16_t domus,int16_t recv){
    int device=0;
    int16_t newDomus=domus;
    if(recv>20){
-      device=recv-20;
-      if(device>0&&device<9){
+      device=(recv-20)-1;
+      if(device>=0&&device<9){
          if(((domus>>device)&1)!=0){
             //verificações
             //codigo do set
@@ -115,8 +118,8 @@ int16_t trata_send(int16_t domus,int16_t recv){
          return newDomus;
       }
    }else if(recv>10&&recv<20){
-      device=recv-10;
-      if(device>0&&device<9){
+      device=(recv-10)-1;
+      if(device>=0&&device<9){
          if(((domus>>device)|1)!=0){
             //verificações
             //codigo do set
@@ -128,7 +131,8 @@ int16_t trata_send(int16_t domus,int16_t recv){
          return newDomus;
       }
 
-   }else{
+   }else if(recv==0){
+      printf("99 recv\n");
       newDomus=99; //numero não plausivel para verificações
       return newDomus;
    }

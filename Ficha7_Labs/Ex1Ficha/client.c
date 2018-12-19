@@ -17,7 +17,6 @@
 #define C_MAX_PORT (1<<16)
 
 
-
 int check_port(int port){
 	if( port <= 0 || port >= C_MAX_PORT ){
 		fprintf(stderr,"ERROR: invalid port '%d'. Must be within"
@@ -118,7 +117,7 @@ int main(int argc, char *argv[]){
     // UDP IPv4: "recvfrom" do servidor (bloqueante)
     if(strcmp(request,"status")!=0){
     printf("à espera de dados do servidor... "); fflush(stdout);
-    if ((udp_read_bytes = recvfrom(udp_client_socket, recv_all, sizeof(recv_all), 0, (struct sockaddr *) &udp_server_endpoint, &udp_server_endpoint_length)) == -1)
+    if ((udp_read_bytes = recvfrom(udp_client_socket, &recv_all, sizeof(recv_all), 0, (struct sockaddr *) &udp_server_endpoint, &udp_server_endpoint_length)) == -1)
       ERROR(25, "Can't recvfrom server: %s\n", strerror(errno));
     printf("ok.  (%d bytes recebidos)\n", (int)udp_read_bytes);
     flag=1;

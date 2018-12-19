@@ -45,16 +45,17 @@ int main(int argc, char *argv[]){
   	//char buffer[];
   	//...
     int16_t send=trata_send(request,device);
+    printf("%d\n",send);
   	// UDP IPv4: "sendto" para o servidor
   	printf("a enviar dados para o servidor... "); fflush(stdout);
-  	if ((udp_sent_bytes = sendto(udp_client_socket, send, sizeof(send), 0, (struct sockaddr *) &udp_server_endpoint, udp_server_endpoint_length)) == -1)
+  	if ((udp_sent_bytes = sendto(udp_client_socket, &send, sizeof(send), 0, (struct sockaddr *) &udp_server_endpoint, udp_server_endpoint_length)) == -1)
   		ERROR(24, "Can't sendto server: %s\n", strerror(errno));
   	printf("ok.  (%d bytes enviados)\n", (int)udp_sent_bytes);
 
   	// UDP IPv4: "recvfrom" do servidor (bloqueante)
     int16_t recv=0;
   	printf("à espera de dados do servidor... "); fflush(stdout);
-  	if ((udp_read_bytes = recvfrom(udp_client_socket, recv, sizeof(recv), 0, (struct sockaddr *) &udp_server_endpoint, &udp_server_endpoint_length)) == -1)
+  	if ((udp_read_bytes = recvfrom(udp_client_socket, &recv, sizeof(recv), 0, (struct sockaddr *) &udp_server_endpoint, &udp_server_endpoint_length)) == -1)
   		ERROR(25, "Can't recvfrom server: %s\n", strerror(errno));
   	printf("ok.  (%d bytes recebidos)\n", (int)udp_read_bytes);
     trata_recv(recv,send);
@@ -68,6 +69,7 @@ int main(int argc, char *argv[]){
 int16_t trata_send(char * request,int device){
   int16_t send=0;
   if(strcmp(request, "status")==0){
+    printf("status\n");
   return send;
 }else if(strcmp(request, "on")==0){
   send=10+device;
@@ -84,7 +86,7 @@ void trata_recv(int16_t recv,int16_t send){
   show_legenda();
   if(send==0){
     for(int i=0;i<8;i++){
-      if(((recv<<i)&1)==1){
+      if(((recv>>i)&1)!=0){
         printf("%d está ligado\n",d);
       }
       else{
