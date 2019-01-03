@@ -24,10 +24,15 @@ int main(int argc, char *argv[]){
     if (cmdline_parser (argc, argv, &args_info) != 0){
         exit(ERR_ARGS);
     }
+     
+    int tcp_server_socket;
+  	if ((tcp_server_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+  		ERROR(51, "Can't create tcp_server_socket (IPv4): %s\n", strerror(errno));
 
-    /*
-     * Inserir codigo do servidor
-     */
+    int udp_server_socket;
+    if ((udp_server_socket = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+      ERROR(31, "Can't create udp_server_socket (IPv4): %s\n", strerror(errno));
+
 
     cmdline_parser_free(&args_info);
 
